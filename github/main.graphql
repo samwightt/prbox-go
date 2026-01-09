@@ -1,0 +1,38 @@
+query Testing {
+    viewer {
+        notificationThreads(first: 50, query: "is:read is:unread") {
+            edges {
+                cursor
+                node {
+                    id
+                    oldestUnreadItemAnchor
+                    reason
+                    title
+                    isUnread
+                    isDone
+                    isSaved
+                    isStarred
+                    lastReadAt
+                    lastUpdatedAt
+                    optionalSubject {
+                        ... on PullRequest {
+                            title
+                            body
+                            author {
+                                ... on User {
+                                    name
+                                    login
+                                }
+                                ... on Bot {
+                                    login
+                                }
+                            }
+                            merged
+                            closed
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

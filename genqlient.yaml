@@ -1,0 +1,37 @@
+# Default genqlient config; for full documentation see:
+# https://github.com/Khan/genqlient/blob/main/docs/genqlient.yaml
+schema: resources/github-schema.graphql
+operations:
+- "github/*.graphql"
+generated: github/generated.go
+package: github
+
+bindings:
+  DateTime:
+    type: time.Time
+  Date:
+    type: time.Time
+  GitTimestamp:
+    type: time.Time
+  PreciseDateTime:
+    type: time.Time
+  URI:
+    type: string
+  HTML:
+    type: string
+  Base64String:
+    type: string
+  BigInt:
+    type: int64
+  GitObjectID:
+    type: string
+  GitRefname:
+    type: string
+  GitSSHRemote:
+    type: string
+  X509Certificate:
+    type: string
+  CustomPropertyValue:
+    type: any
+  _Any:
+    type: any
