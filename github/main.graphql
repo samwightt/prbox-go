@@ -14,6 +14,7 @@ query Testing {
                     isStarred
                     lastReadAt
                     lastUpdatedAt
+                    url
                     optionalSubject {
                         ... on PullRequest {
                             title

@@ -6,10 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"prbox/github"
-	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
-	lipgloss "github.com/charmbracelet/lipgloss/v2"
+	tea "charm.land/bubbletea/v2"
 )
 
 type screen struct {
@@ -17,34 +15,34 @@ type screen struct {
 	height int
 }
 
+type NotificationThread = github.TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNotificationThreadEdge
+
 type model struct {
-	githubCliFound        bool
-	githubCliPath         string
-	screen                screen
-	loadingNotifications  bool
-	notifications         []string
-	notificationsErr      error
+	githubCliFound       bool
+	githubCliPath        string
+	darkMode             bool
+	screen               screen
+	activeItem           int
+	loadingNotifications bool
+	notifications        []NotificationThread
+	notificationsErr     error
 }
 
 type githubCliPath (string)
 type githubCliPathError struct{ err error }
 
-type notificationsLoaded struct{ titles []string }
+type notificationsLoaded struct{ notifications []NotificationThread }
 type notificationsError struct{ err error }
 
 func FetchNotifications(ghPath string) tea.Cmd {
 	return func() tea.Msg {
-		client := newCLIClient(ghPath)
+		client := github.NewClient(ghPath)
 		resp, err := github.Testing(context.Background(), client)
 		if err != nil {
 			return notificationsError{err}
 		}
 
-		var titles []string
-		for _, edge := range resp.Viewer.NotificationThreads.Edges {
-			titles = append(titles, edge.Node.Title)
-		}
-		return notificationsLoaded{titles}
+		return notificationsLoaded{resp.Viewer.NotificationThreads.Edges}
 	}
 }
 
@@ -56,6 +54,17 @@ func CheckIfGithubCliInstalled() tea.Cmd {
 		} else {
 			return githubCliPath(path)
 		}
+	}
+}
+
+func OpenInBrowser(notification NotificationThread) tea.Cmd {
+	return func() tea.Msg {
+		url := notification.Node.Url
+		if notification.Node.OldestUnreadItemAnchor != "" {
+			url += "#" + notification.Node.OldestUnreadItemAnchor
+		}
+		exec.Command("open", url).Start()
+		return nil
 	}
 }
 
@@ -83,7 +92,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.githubCliFound = false
 	case notificationsLoaded:
 		m.loadingNotifications = false
-		m.notifications = msg.titles
+		m.notifications = msg.notifications
 	case notificationsError:
 		m.loadingNotifications = false
 		m.notificationsErr = msg.err
@@ -92,64 +101,34 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-			// case "up", "k":
-			// 	if m.cursor > 0 {
-			// 		m.cursor--
-			// 	}
-			// case "down", "j":
-			// 	if m.cursor < len(m.choices)-1 {
-			// 		m.cursor++
-			// 	}
-			// case "enter", " ":
-			// 	_, ok := m.selected[m.cursor]
-			// 	if ok {
-			// 		delete(m.selected, m.cursor)
-			// 	} else {
-			// 		m.selected[m.cursor] = struct{}{}
-			// 	}
+		case "up", "k":
+			if m.activeItem > 0 {
+				m.activeItem--
+			}
+		case "down", "j":
+			if m.activeItem < len(m.notifications)-1 {
+				m.activeItem++
+			}
+		case "G":
+			m.activeItem = len(m.notifications) - 1
+		case "enter":
+			if len(m.notifications) > 0 && m.activeItem < len(m.notifications) {
+				return m, OpenInBrowser(m.notifications[m.activeItem])
+			}
 		}
 	}
 
 	return m, nil
 }
 
-var style = lipgloss.NewStyle().Bold(true).Border(lipgloss.NormalBorder())
-
-var boxStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).AlignHorizontal(lipgloss.Center).AlignVertical(lipgloss.Center)
-var errorTitle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Red).Border(lipgloss.DoubleBorder())
-
-func FullScreenBox(s screen) lipgloss.Style {
-	return boxStyle.Width(s.width).Height(s.height)
-}
-
-func ShowErrorMessage(m model) string {
-	s := errorTitle.Render("It looks like you don't have the GitHub CLI installed.")
-
-	return FullScreenBox(m.screen).Render(s)
-}
-
-func (m model) View() string {
-	if !m.githubCliFound {
-		return ShowErrorMessage(m)
-	}
-
-	var s string
-
-	if m.loadingNotifications {
-		s = "Loading notifications..."
-	} else if m.notificationsErr != nil {
-		s = fmt.Sprintf("Error loading notifications: %v", m.notificationsErr)
-	} else if len(m.notifications) == 0 {
-		s = "No notifications"
-	} else {
-		s = strings.Join(m.notifications, "\n")
-	}
-
-	return FullScreenBox(m.screen).Render(s)
+func (m model) View() tea.View {
+	view := tea.NewView(App(&m))
+	view.AltScreen = true
+	return view
 }
 
 func main() {
-	p := tea.NewProgram(initModel(), tea.WithAltScreen())
+	p := tea.NewProgram(initModel())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's ben an error: %v", err)
 		os.Exit(1)

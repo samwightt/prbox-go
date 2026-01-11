@@ -158,6 +158,8 @@ type TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNotifi
 	LastReadAt time.Time `json:"lastReadAt"`
 	// The last time that a notification was received on this thread for the current user
 	LastUpdatedAt time.Time `json:"lastUpdatedAt"`
+	// The HTTP URL for the notification thread's subject
+	Url string `json:"url"`
 	// The notification's subject.
 	OptionalSubject TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNotificationThreadEdgeNodeNotificationThreadOptionalSubjectNotificationsSubject `json:"-"`
 }
@@ -210,6 +212,11 @@ func (v *TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNo
 // GetLastUpdatedAt returns TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNotificationThreadEdgeNodeNotificationThread.LastUpdatedAt, and is useful for accessing the field via an interface.
 func (v *TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNotificationThreadEdgeNodeNotificationThread) GetLastUpdatedAt() time.Time {
 	return v.LastUpdatedAt
+}
+
+// GetUrl returns TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNotificationThreadEdgeNodeNotificationThread.Url, and is useful for accessing the field via an interface.
+func (v *TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNotificationThreadEdgeNodeNotificationThread) GetUrl() string {
+	return v.Url
 }
 
 // GetOptionalSubject returns TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNotificationThreadEdgeNodeNotificationThread.OptionalSubject, and is useful for accessing the field via an interface.
@@ -271,6 +278,8 @@ type __premarshalTestingViewerUserNotificationThreadsNotificationThreadConnectio
 
 	LastUpdatedAt time.Time `json:"lastUpdatedAt"`
 
+	Url string `json:"url"`
+
 	OptionalSubject json.RawMessage `json:"optionalSubject"`
 }
 
@@ -295,6 +304,7 @@ func (v *TestingViewerUserNotificationThreadsNotificationThreadConnectionEdgesNo
 	retval.IsStarred = v.IsStarred
 	retval.LastReadAt = v.LastReadAt
 	retval.LastUpdatedAt = v.LastUpdatedAt
+	retval.Url = v.Url
 	{
 
 		dst := &retval.OptionalSubject
@@ -1075,6 +1085,7 @@ query Testing {
 					isStarred
 					lastReadAt
 					lastUpdatedAt
+					url
 					optionalSubject {
 						__typename
 						... on PullRequest {
