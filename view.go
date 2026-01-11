@@ -39,7 +39,7 @@ func layout(screen *screen, content string) string {
 
 var activeColor = lipgloss.LightDark
 
-func notification(n NotificationThread, index int, m *model) string {
+func notification(n *NotificationThread, index int, m *model) string {
 	if m.activeItem == index {
 		return "> " + n.Node.Title
 	} else {
@@ -58,8 +58,8 @@ func content(m *model) string {
 		return "No notifications"
 	} else {
 		var sb strings.Builder
-		for i, n := range m.notifications {
-			sb.WriteString(notification(n, i, m) + "\n")
+		for i := range m.notifications {
+			sb.WriteString(notification(&m.notifications[i], i, m) + "\n")
 		}
 		return sb.String()
 	}
