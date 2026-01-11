@@ -75,7 +75,10 @@ func initModel() model {
 }
 
 func (m model) Init() tea.Cmd {
-	return CheckIfGithubCliInstalled()
+	return tea.Batch(
+		tea.RequestBackgroundColor,
+		CheckIfGithubCliInstalled(),
+	)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -96,6 +99,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case notificationsError:
 		m.loadingNotifications = false
 		m.notificationsErr = msg.err
+	case tea.BackgroundColorMsg:
+		m.darkMode = msg.IsDark()
 	case tea.KeyMsg:
 		// Cool what was the actual key pressed?
 		switch msg.String() {

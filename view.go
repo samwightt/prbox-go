@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"strings"
 
 	lipgloss "charm.land/lipgloss/v2"
@@ -37,13 +38,34 @@ func layout(screen *screen, content string) string {
 	return lipgloss.JoinVertical(lipgloss.Left, header, contentArea, footer)
 }
 
-var activeColor = lipgloss.LightDark
+var activeStyle = lipgloss.NewStyle().Bold(true)
+
+func activeColor(darkMode bool) color.Color {
+	if darkMode {
+		return lipgloss.Color("#39BAE6")
+		// return lipgloss.Color("#EAF4D3")
+	} else {
+		return lipgloss.Blue
+		// return lipgloss.Color("#3A86FF")
+	}
+}
+
+func inactiveColor(darkMode bool) color.Color {
+	if darkMode {
+		return lipgloss.Color("#BFBDB6")
+	} else {
+		return lipgloss.BrightBlue
+		// return lipgloss.Color("#D8CBC7")
+	}
+}
 
 func notification(n *NotificationThread, index int, m *model) string {
 	if m.activeItem == index {
-		return "> " + n.Node.Title
+		style := activeStyle.Foreground(lipgloss.NoColor{}).Background(activeColor(m.darkMode))
+		return style.Render("> " + n.Node.Title)
 	} else {
-		return "  " + n.Node.Title
+		style := lipgloss.NewStyle().Foreground(inactiveColor(m.darkMode))
+		return style.Render("  " + n.Node.Title)
 	}
 }
 
